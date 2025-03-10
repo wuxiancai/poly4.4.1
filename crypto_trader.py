@@ -792,7 +792,7 @@ class CryptoTrader:
         """开始监控"""
         # 直接使用当前显示的网址
         self.target_url = self.url_entry.get()
-        self.logger.info(f"开始监控网址: {self.target_url}")
+        self.logger.info(f"✅ 开始监控网址: {self.target_url}")
         
         # 启用开始按钮，启用停止按钮
         self.start_button['state'] = 'disabled'
@@ -3137,6 +3137,8 @@ class CryptoTrader:
         """启动自动找币"""
         # 先判断是否持仓
         if self.contrast_portfolio_cash():
+            self.stop_url_monitoring()
+            self.stop_refresh_page()
             try:
                 # 点击 Portfolio 按钮 
                 portfolio_button = self.driver.find_element(By.XPATH, XPathConfig.PORTFOLIO_BUTTON)
@@ -3160,23 +3162,41 @@ class CryptoTrader:
                 except Exception as retry_e:
                     self.logger.error(f"使用retry方法点击Portfolio按钮失败: {str(retry_e)}")
                     return False
-                    
-            # 敲击 29 下 TAB 键
-            for i in range(29):
-                pyautogui.press('tab')
                 
-            # 敲击 1 下 ENTER 键
-            pyautogui.press('enter')
-            time.sleep(3)
+            portfolio_window = self.driver.current_window_handle
 
+            # 敲击 29 下 TAB 键
+            for i in range(28):
+                pyautogui.press('tab')
+                time.sleep(0.1)
+
+            # 创建ActionChains对象
+            actions = ActionChains(self.driver)
+            # 使用正确的组合键（Windows/Linux用Ctrl+Enter，Mac用Command+Enter）
+            modifier_key = Keys.COMMAND if sys.platform == 'darwin' else Keys.CONTROL
+            
+            actions.key_down(modifier_key).send_keys(Keys.ENTER).key_up(modifier_key).perform()  
+            
+            time.sleep(3)
+            # 切换到最后一个标签页
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            
             # 保存当前 URL 到 config
             current_url = self.driver.current_url
-            base_url = self.extract_base_url(current_url)
-            self.config['website']['url'] = base_url
+            
+            self.config['website']['url'] = current_url
             self.save_config()
-            self.logger.info(f"已保存当前 URL 到 config: {base_url}")
+            self.logger.info(f"已保存当前 URL 到 config: {current_url}")
+
+            # 把保存到config的url放到self.url_entry中
+            # 保存前,先清楚现有的url
+            self.url_entry.delete(0, tk.END)
+            self.url_entry.insert(0, current_url)
+            
+            entry_url = self.url_entry.get()
+            self.logger.info(f"已获取到entry_url: {entry_url}")
             # 监控当前 URL
-            self.target_url = base_url
+            self.target_url = entry_url
             time.sleep(2)
             self.start_url_monitoring()
             self.refresh_page()
@@ -3278,7 +3298,15 @@ class CryptoTrader:
                             self.logger.info(f"✅ {coin}:符合要求,已保存到 config")
                             
                             # 监控当前窗口
-                            self.target_url = coin_new_weekly_url
+                            current_url = coin_new_weekly_url
+                            # 把保存到config的url放到self.url_entry中
+                            # 保存前,先清楚现有的url
+                            self.url_entry.delete(0, tk.END)
+                            self.url_entry.insert(0, current_url)
+                            
+                            entry_url = self.url_entry.get()
+
+                            self.target_url = entry_url
                             self.start_url_monitoring()
                             self.refresh_page()
                             
@@ -3492,8 +3520,14 @@ class CryptoTrader:
                         self.save_config()
                         self.logger.info(f"✅ {coin}:符合要求,已保存到 config")
                         
+                        # 把保存到config的url放到self.url_entry中
+                        # 保存前,先清楚现有的url
+                        self.url_entry.delete(0, tk.END)
+                        self.url_entry.insert(0, new_weekly_url)
+                        
+                        entry_url = self.url_entry.get()
                         # 监控当前窗口
-                        self.target_url = new_weekly_url
+                        self.target_url = entry_url
                         self.target_url_window = self.driver.current_window_handle
                         time.sleep(8)
                         self.driver.switch_to.window(search_tab)
