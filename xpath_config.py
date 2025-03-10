@@ -149,3 +149,9 @@ class XPathConfig:
     PORTFOLIO_BUTTON = [
         '//a[@href="/portfolio"]' # 长期有效
     ]
+
+    # 23.FIND_PORTFOLIO_COIN_BUTTON
+    FIND_PORTFOLIO_COIN_BUTTON = [
+        '//a[contains(text(), "above")]' # 长期有效
+    ]
+
