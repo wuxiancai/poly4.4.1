@@ -141,7 +141,6 @@ class XPathConfig:
     SEARCH_INPUT = [
         '//input[@id="markets-grid-search-input"]',# 长期有效
         '/html/body/div[1]/div[2]/div/div/main/div/div/div[3]/div/div/div/div[1]/div[2]/div[2]/input',
-        
         'input[placeholder="Search by market"]'
     ] 
 
@@ -155,3 +154,8 @@ class XPathConfig:
         '//a[contains(text(), "above")]' # 长期有效
     ]
 
+    # 24.search_confirm_button
+    SEARCH_CONFIRM_BUTTON = [
+        '//p[contains(text(), "above")]', # 长期有效
+        '//a//p[contains(text(), "above")]' # 长期有效
+    ]
