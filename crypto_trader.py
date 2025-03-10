@@ -3432,7 +3432,7 @@ class CryptoTrader:
                 # 关闭搜索标签页
                 self.driver.close()
                 # 切换回原始窗口
-                self.driver.switch_to.window(original_tab)
+                self.driver.switch_to.window(current_tab)
                 return None
             try:
                 # 使用确定的XPath查找搜索框
@@ -3494,12 +3494,20 @@ class CryptoTrader:
                         
                         # 监控当前窗口
                         self.target_url = new_weekly_url
+                        self.target_url_window = self.driver.current_window_handle
+                        time.sleep(8)
+                        self.driver.switch_to.window(search_tab)
+                        self.driver.close()
+                        self.driver.switch_to.window(current_tab)
+                        self.driver.close()
+                        self.driver.switch_to.window(self.target_url_window)
+
                         self.start_url_monitoring()
                         self.refresh_page()
                         
                         self.stop_auto_find_coin()
                     else:
-                        # 关闭当前URL标签页
+                        # 关闭当前详情URL标签页
                         self.driver.close()
                         
                         # 切换回搜索标签页
