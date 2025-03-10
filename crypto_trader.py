@@ -418,7 +418,7 @@ class CryptoTrader:
 
         """设置窗口大小和位置"""
 
-        window_width = 490
+        window_width = 480
         window_height = 800
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -490,7 +490,7 @@ class CryptoTrader:
         pair_container.pack(anchor="center")
         
         # 交易币种及日期，颜色为蓝色
-        ttk.Label(pair_container, text="Trading-Pair-Date:", 
+        ttk.Label(pair_container, text="Crypto:", 
                  font=('Arial', 14), foreground='blue').pack(side=tk.LEFT, padx=5)
         self.trading_pair_label = ttk.Label(pair_container, text="--", 
                                         font=('Arial', 16, 'bold'), foreground='blue')
@@ -505,13 +505,13 @@ class CryptoTrader:
         prices_container.pack(expand=True)  # 添加expand=True使容器居中
         
         # Yes实时价格显示
-        self.yes_price_label = ttk.Label(prices_container, text="Yes: waiting for data...", 
-                                        font=('Arial', 20), foreground='#9370DB')
+        self.yes_price_label = ttk.Label(prices_container, text="Yes: waiting...", 
+                                        font=('Arial', 18), foreground='#9370DB')
         self.yes_price_label.pack(side=tk.LEFT, padx=20)
         
         # No实时价格显示
-        self.no_price_label = ttk.Label(prices_container, text="No: waiting for data...", 
-                                       font=('Arial', 20), foreground='#9370DB')
+        self.no_price_label = ttk.Label(prices_container, text="No: waiting...", 
+                                       font=('Arial', 18), foreground='#9370DB')
         self.no_price_label.pack(side=tk.LEFT, padx=20)
         
         # 最后更新时间 - 靠右下对齐
@@ -528,13 +528,13 @@ class CryptoTrader:
         balance_container.pack(expand=True)  # 添加expand=True使容器居中
         
         # Portfolio显示
-        self.portfolio_label = ttk.Label(balance_container, text="Portfolio: waiting for data...", 
-                                        font=('Arial', 20), foreground='#9370DB') # 修改为绿色
+        self.portfolio_label = ttk.Label(balance_container, text="Portfolio: waiting...", 
+                                        font=('Arial', 18), foreground='#9370DB') # 修改为绿色
         self.portfolio_label.pack(side=tk.LEFT, padx=20)
         
         # Cash显示
-        self.cash_label = ttk.Label(balance_container, text="Cash: waiting for data...", 
-                                   font=('Arial', 20), foreground='#9370DB') # 修改为绿色
+        self.cash_label = ttk.Label(balance_container, text="Cash: waiting...", 
+                                   font=('Arial', 18), foreground='#9370DB') # 修改为绿色
         self.cash_label.pack(side=tk.LEFT, padx=20)
         
         # 最后更新时间 - 靠右下对齐
@@ -548,127 +548,127 @@ class CryptoTrader:
         
         # 左右分栏显示Yes/No配置
         # YES 区域配置
-        self.yes_frame = ttk.LabelFrame(config_frame, text="Yes配置", padding=(2, 3))
+        self.yes_frame = ttk.LabelFrame(config_frame, text="Yes config", padding=(2, 3))
         self.yes_frame.grid(row=0, column=0, padx=2, sticky="ew")
         config_frame.grid_columnconfigure(0, weight=1)
 
         # No 配置区域
-        self.no_frame = ttk.LabelFrame(config_frame, text="No配置", padding=(2, 3))
+        self.no_frame = ttk.LabelFrame(config_frame, text="No config", padding=(2, 3))
         self.no_frame.grid(row=0, column=1, padx=2, sticky="ew")
         config_frame.grid_columnconfigure(1, weight=1)
         
         # YES1 价格
-        ttk.Label(self.yes_frame, text="Yes1 价格($):", font=('Arial', 12)).grid(row=0, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes1 Price($):", font=('Arial', 12)).grid(row=0, column=0, padx=2, pady=5)
         self.yes1_price_entry = ttk.Entry(self.yes_frame, width=12)
         self.yes1_price_entry.insert(0, str(self.config['trading']['Yes1']['target_price']))
         self.yes1_price_entry.grid(row=0, column=1, padx=2, pady=5, sticky="ew")
 
         # yes2 价格
-        ttk.Label(self.yes_frame, text="Yes2 价格($):", font=('Arial', 12)).grid(row=2, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes2 Price($):", font=('Arial', 12)).grid(row=2, column=0, padx=2, pady=5)
         self.yes2_price_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes2_price_entry.delete(0, tk.END)
         self.yes2_price_entry.insert(0, "0.00")
         self.yes2_price_entry.grid(row=2, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # yes3 价格
-        ttk.Label(self.yes_frame, text="Yes3 价格($):", font=('Arial', 12)).grid(row=4, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes3 Price($):", font=('Arial', 12)).grid(row=4, column=0, padx=2, pady=5)
         self.yes3_price_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes3_price_entry.delete(0, tk.END)
         self.yes3_price_entry.insert(0, "0.00")
         self.yes3_price_entry.grid(row=4, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # yes4 价格
-        ttk.Label(self.yes_frame, text="Yes4 价格($):", font=('Arial', 12)).grid(row=6, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes4 Price($):", font=('Arial', 12)).grid(row=6, column=0, padx=2, pady=5)
         self.yes4_price_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes4_price_entry.delete(0, tk.END)
         self.yes4_price_entry.insert(0, "0.00")
         self.yes4_price_entry.grid(row=6, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # yes5 价格
-        ttk.Label(self.yes_frame, text="Yes5 价格($):", font=('Arial', 12)).grid(row=8, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes5 Price($):", font=('Arial', 12)).grid(row=8, column=0, padx=2, pady=5)
         self.yes5_price_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes5_price_entry.delete(0, tk.END)
         self.yes5_price_entry.insert(0, "0.00")
         self.yes5_price_entry.grid(row=8, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # yes1 金额
-        ttk.Label(self.yes_frame, text="Yes1 金额:", font=('Arial', 12)).grid(row=1, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes1 Amount:", font=('Arial', 12)).grid(row=1, column=0, padx=2, pady=5)
         self.yes1_amount_entry = ttk.Entry(self.yes_frame, width=12)
         self.yes1_amount_entry.insert(0, str(self.config['trading']['Yes1']['amount']))
         self.yes1_amount_entry.grid(row=1, column=1, padx=2, pady=5, sticky="ew")
 
         # yes2 金额
-        ttk.Label(self.yes_frame, text="Yes2 金额:", font=('Arial', 12)).grid(row=3, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes2 Amount:", font=('Arial', 12)).grid(row=3, column=0, padx=2, pady=5)
         self.yes2_amount_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes2_amount_entry.insert(0, "0.0")
         self.yes2_amount_entry.grid(row=3, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # yes3 金额
-        ttk.Label(self.yes_frame, text="Yes3 金额:", font=('Arial', 12)).grid(row=5, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes3 Amount:", font=('Arial', 12)).grid(row=5, column=0, padx=2, pady=5)
         self.yes3_amount_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes3_amount_entry.insert(0, "0.0")
         self.yes3_amount_entry.grid(row=5, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # yes4 金额
-        ttk.Label(self.yes_frame, text="Yes4 金额:", font=('Arial', 12)).grid(row=7, column=0, padx=2, pady=5)
+        ttk.Label(self.yes_frame, text="Yes4 Amount:", font=('Arial', 12)).grid(row=7, column=0, padx=2, pady=5)
         self.yes4_amount_entry = ttk.Entry(self.yes_frame, width=12)  # 添加self
         self.yes4_amount_entry.insert(0, "0.0")
         self.yes4_amount_entry.grid(row=7, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # No1 价格
-        ttk.Label(self.no_frame, text="No1 价格($):", font=('Arial', 12)).grid(row=0, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No1 Price($):", font=('Arial', 12)).grid(row=0, column=0, padx=2, pady=5)
         self.no1_price_entry = ttk.Entry(self.no_frame, width=12)
         self.no1_price_entry.insert(0, str(self.config['trading']['No1']['target_price']))
         self.no1_price_entry.grid(row=0, column=1, padx=2, pady=5, sticky="ew")
 
         # No2 价格
-        ttk.Label(self.no_frame, text="No2 价格($):", font=('Arial', 12)).grid(row=2, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No2 Price($):", font=('Arial', 12)).grid(row=2, column=0, padx=2, pady=5)
         self.no2_price_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no2_price_entry.delete(0, tk.END)
         self.no2_price_entry.insert(0, "0.00")
         self.no2_price_entry.grid(row=2, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # No3 价格
-        ttk.Label(self.no_frame, text="No3 价格($):", font=('Arial', 12)).grid(row=4, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No3 Price($):", font=('Arial', 12)).grid(row=4, column=0, padx=2, pady=5)
         self.no3_price_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no3_price_entry.delete(0, tk.END)
         self.no3_price_entry.insert(0, "0.00")
         self.no3_price_entry.grid(row=4, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # No4 价格
-        ttk.Label(self.no_frame, text="No4 价格($):", font=('Arial', 12)).grid(row=6, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No4 Price($):", font=('Arial', 12)).grid(row=6, column=0, padx=2, pady=5)
         self.no4_price_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no4_price_entry.delete(0, tk.END)
         self.no4_price_entry.insert(0, "0.00")
         self.no4_price_entry.grid(row=6, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # No5 价格
-        ttk.Label(self.no_frame, text="No5 价格($):", font=('Arial', 12)).grid(row=8, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No5 Price($):", font=('Arial', 12)).grid(row=8, column=0, padx=2, pady=5)
         self.no5_price_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no5_price_entry.delete(0, tk.END)
         self.no5_price_entry.insert(0, "0.00")
         self.no5_price_entry.grid(row=8, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # NO1 金额
-        ttk.Label(self.no_frame, text="No1 金额:", font=('Arial', 12)).grid(row=1, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No1 Amount:", font=('Arial', 12)).grid(row=1, column=0, padx=2, pady=5)
         self.no1_amount_entry = ttk.Entry(self.no_frame, width=12)
         self.no1_amount_entry.insert(0, str(self.config['trading']['No1']['amount']))
         self.no1_amount_entry.grid(row=1, column=1, padx=2, pady=5, sticky="ew")
 
         # No2 金额
-        ttk.Label(self.no_frame, text="No2 金额:", font=('Arial', 12)).grid(row=3, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No2 Amount:", font=('Arial', 12)).grid(row=3, column=0, padx=2, pady=5)
         self.no2_amount_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no2_amount_entry.insert(0, "0.0")
         self.no2_amount_entry.grid(row=3, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # No3 金额
-        ttk.Label(self.no_frame, text="No 3 金额:", font=('Arial', 12)).grid(row=5, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No 3 Amount:", font=('Arial', 12)).grid(row=5, column=0, padx=2, pady=5)
         self.no3_amount_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no3_amount_entry.insert(0, "0.0")
         self.no3_amount_entry.grid(row=5, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
 
         # No4 金额
-        ttk.Label(self.no_frame, text="No4 金额:", font=('Arial', 12)).grid(row=7, column=0, padx=2, pady=5)
+        ttk.Label(self.no_frame, text="No4 Amount:", font=('Arial', 12)).grid(row=7, column=0, padx=2, pady=5)
         self.no4_amount_entry = ttk.Entry(self.no_frame, width=12)  # 添加self
         self.no4_amount_entry.insert(0, "0.0")
         self.no4_amount_entry.grid(row=7, column=1, padx=2, pady=5, sticky="ew")  # 修正grid位置
@@ -810,7 +810,7 @@ class CryptoTrader:
         """到这里代码执行到了 995 行"""
 
         self.running = True
-        self.update_status("监控运行中...")
+        self.update_status("monitoring...")
 
         # 启用更金额按钮
         self.update_amount_button['state'] = 'normal'
@@ -2410,32 +2410,33 @@ class CryptoTrader:
                     timeout=3,
                     silent=True
                 )
+
             # 清空输入框
             amount_input.clear()
             # 根据按钮文本获取对应的金额
-            if button_text == "Amount-Yes1":
+            if button_text == "Amount-Y1":
                 amount = self.yes1_amount_entry.get()
-            elif button_text == "Amount-Yes2":
+            elif button_text == "Amount-Y2":
                 yes2_amount_entry = self.yes_frame.grid_slaves(row=3, column=1)[0]
                 amount = yes2_amount_entry.get()
-            elif button_text == "Amount-Yes3":
+            elif button_text == "Amount-Y3":
                 yes3_amount_entry = self.yes_frame.grid_slaves(row=5, column=1)[0]
                 amount = yes3_amount_entry.get()
-            elif button_text == "Amount-Yes4":
+            elif button_text == "Amount-Y4":
                 yes4_amount_entry = self.yes_frame.grid_slaves(row=7, column=1)[0]
                 amount = yes4_amount_entry.get()
             
             # No 按钮
-            elif button_text == "Amount-No1":
+            elif button_text == "Amount-N1":
                 no1_amount_entry = self.no_frame.grid_slaves(row=1, column=1)[0]
                 amount = no1_amount_entry.get()
-            elif button_text == "Amount-No2":
+            elif button_text == "Amount-N2":
                 no2_amount_entry = self.no_frame.grid_slaves(row=3, column=1)[0]
                 amount = no2_amount_entry.get()
-            elif button_text == "Amount-No3":
+            elif button_text == "Amount-N3":
                 no3_amount_entry = self.no_frame.grid_slaves(row=5, column=1)[0]
                 amount = no3_amount_entry.get()
-            elif button_text == "Amount-No4":
+            elif button_text == "Amount-N4":
                 no4_amount_entry = self.no_frame.grid_slaves(row=7, column=1)[0]
                 amount = no4_amount_entry.get()
             else:
@@ -3190,8 +3191,8 @@ class CryptoTrader:
             time.sleep(3)
             
             # 保存当前 URL 到 config
-            current_url = self.driver.current_url
-            
+            base_url = self.driver.current_url
+            current_url = self.extract_base_url(base_url)
             self.config['website']['url'] = current_url
             self.save_config()
             self.logger.info(f"已保存当前 URL 到 config: {current_url}")
@@ -3263,7 +3264,7 @@ class CryptoTrader:
 
                 try:  # 为每个币种添加单独的异常处理
                     coin_new_weekly_url = self.find_new_weekly_url(coin)
-                    self.logger.info(f"✅ 找到{coin}的周合约URL: {coin_new_weekly_url}")
+                    
                     if coin_new_weekly_url:
                         # 确保我们从原始窗口开始
                         try:
@@ -3307,7 +3308,9 @@ class CryptoTrader:
                             # 保存前,先清楚现有的url
                             self.url_entry.delete(0, tk.END)
                             self.url_entry.insert(0, coin_new_weekly_url)
-                            
+                            self.target_url = self.url_entry.get()
+                            self.logger.info(f"✅ {self.target_url}:已插入到  GUI 界面上的 url_entry 中")
+
                             self.start_url_monitoring()
                             self.refresh_page()
                             
@@ -3352,6 +3355,8 @@ class CryptoTrader:
                             self.url_entry.insert(0, coin_new_weekly_url)
 
                             self.target_url = self.url_entry.get()
+                            self.logger.info(f"✅ {self.target_url}:已插入到  GUI 界面上的 url_entry 中")
+
                             # 保存当前窗口句柄
                             current_window = self.driver.current_window_handle
                             # 切换回原始窗口
@@ -3449,6 +3454,7 @@ class CryptoTrader:
 
             # 定义search_tab变量，保存搜索标签页的句柄
             search_tab = self.driver.current_window_handle
+
             # 等待页面加载完成
             WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
@@ -3493,12 +3499,30 @@ class CryptoTrader:
                 
                 # 按ENTER键开始搜索
                 actions.send_keys(Keys.RETURN).perform()
-                time.sleep(1)  # 等待搜索结果加载
+                time.sleep(2)  # 等待搜索结果加载
                 
-                # 按4次TAB键
-                for i in range(4):
-                    actions.send_keys(Keys.TAB).perform()
-                    time.sleep(0.3)  # 每次TAB之间等待1秒
+                try:
+                    # 点击 seach_confirm_button按钮 
+                    search_confirm_button = self.driver.find_element(By.XPATH, XPathConfig.SEARCH_CONFIRM_BUTTON)
+                    self.logger.info(f"点击SEARCH_CONFIRM_BUTTON按钮: {search_confirm_button}")
+                    search_confirm_button.click()
+                except Exception as e: 
+                    # 尝试使用_find_element_with_retry方法
+                    try:
+                        search_confirm_button = self._find_element_with_retry(
+                            XPathConfig.SEARCH_CONFIRM_BUTTON,
+                            timeout=3,
+                            silent=True
+                        )
+
+                        if search_confirm_button:
+                            search_confirm_button.click()   
+                        else:
+                            self.logger.error("无法找到SEARCH_CONFIRM_BUTTON按钮")
+                            return False
+                    except Exception as retry_e:
+                        self.logger.error(f"使用retry方法点击SEARCH_CONFIRM_BUTTON按钮失败: {str(retry_e)}")
+                        return False
                 
                 # 使用正确的组合键（Windows/Linux用Ctrl+Enter，Mac用Command+Enter）
                 modifier_key = Keys.COMMAND if sys.platform == 'darwin' else Keys.CONTROL
@@ -3535,6 +3559,8 @@ class CryptoTrader:
                         self.url_entry.delete(0, tk.END)
                         self.url_entry.insert(0, new_weekly_url)
                         self.target_url = self.url_entry.get()
+                        self.logger.info(f"✅ {self.target_url}:已插入到  GUI 界面上的 url_entry 中")
+
                         self.target_url_window = self.driver.current_window_handle
                         time.sleep(8)
                         self.driver.switch_to.window(search_tab)
@@ -3621,24 +3647,14 @@ class CryptoTrader:
         提取 https://polymarket.com/event/dogecoin-above-0pt20-on-march-14
         """
         try:
-            # 首先按问号分隔，去除查询参数
-            url_without_query = url.split('?')[0]
+            # 先按 "?" 分割，去掉查询参数
+            base_url = url.split('?')[0]
+
+            # 再按 "/" 进行分割，去掉最后一部分重复的路径
+            clean_url = base_url.rsplit('/', 1)[0]
             
-            # 然后按斜杠分隔，找到最后一个斜杠之前的部分
-            parts = url_without_query.split('/')
+            return clean_url
             
-            # 如果URL格式符合预期（至少有event部分）
-            if len(parts) >= 5 and 'event' in parts:
-                # 获取到event部分的索引
-                event_index = parts.index('event')
-                # 构建基础URL（包含event和event名称）
-                base_url = '/'.join(parts[:event_index+2])
-                self.logger.info(f"提取的基础URL: {base_url}")
-                return base_url
-            else:
-                # 如果URL格式不符合预期，返回原始URL
-                self.logger.warning(f"URL格式不符合预期,无法提取基础部分: {url}")
-                return url
         except Exception as e:
             self.logger.error(f"提取基础URL时出错: {str(e)}")
             return url
