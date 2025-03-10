@@ -3163,23 +3163,31 @@ class CryptoTrader:
                     self.logger.error(f"使用retry方法点击Portfolio按钮失败: {str(retry_e)}")
                     return False
                 
-            portfolio_window = self.driver.current_window_handle
+            try:
+                # 点击 FIND_PORTFOLIO_COIN_BUTTON按钮 
+                find_portfolio_coin_button = self.driver.find_element(By.XPATH, XPathConfig.FIND_PORTFOLIO_COIN_BUTTON)
+                self.logger.info(f"点击FIND_PORTFOLIO_COIN_BUTTON按钮: {find_portfolio_coin_button}")
+                find_portfolio_coin_button.click()
+                
+            except Exception as e: 
+                # 尝试使用_find_element_with_retry方法
+                try:
+                    find_portfolio_coin_button = self._find_element_with_retry(
+                        XPathConfig.FIND_PORTFOLIO_COIN_BUTTON,
+                        timeout=3,
+                        silent=True
+                    )
+                    if find_portfolio_coin_button:
+                        find_portfolio_coin_button.click()
+                        
+                    else:
+                        self.logger.error("无法找到FIND_PORTFOLIO_COIN_BUTTON按钮")
+                        return False
+                except Exception as retry_e:
+                    self.logger.error(f"使用retry方法点击FIND_PORTFOLIO_COIN_BUTTON按钮失败: {str(retry_e)}")
+                    return False
 
-            # 敲击 29 下 TAB 键
-            for i in range(28):
-                pyautogui.press('tab')
-                time.sleep(0.1)
-
-            # 创建ActionChains对象
-            actions = ActionChains(self.driver)
-            # 使用正确的组合键（Windows/Linux用Ctrl+Enter，Mac用Command+Enter）
-            modifier_key = Keys.COMMAND if sys.platform == 'darwin' else Keys.CONTROL
-            
-            actions.key_down(modifier_key).send_keys(Keys.ENTER).key_up(modifier_key).perform()  
-            
             time.sleep(3)
-            # 切换到最后一个标签页
-            self.driver.switch_to.window(self.driver.window_handles[-1])
             
             # 保存当前 URL 到 config
             current_url = self.driver.current_url
@@ -3192,11 +3200,7 @@ class CryptoTrader:
             # 保存前,先清楚现有的url
             self.url_entry.delete(0, tk.END)
             self.url_entry.insert(0, current_url)
-            
-            entry_url = self.url_entry.get()
-            self.logger.info(f"已获取到entry_url: {entry_url}")
-            # 监控当前 URL
-            self.target_url = entry_url
+            self.target_url = self.url_entry.get()
             time.sleep(2)
             self.start_url_monitoring()
             self.refresh_page()
@@ -3298,15 +3302,12 @@ class CryptoTrader:
                             self.logger.info(f"✅ {coin}:符合要求,已保存到 config")
                             
                             # 监控当前窗口
-                            current_url = coin_new_weekly_url
+                            
                             # 把保存到config的url放到self.url_entry中
                             # 保存前,先清楚现有的url
                             self.url_entry.delete(0, tk.END)
-                            self.url_entry.insert(0, current_url)
+                            self.url_entry.insert(0, coin_new_weekly_url)
                             
-                            entry_url = self.url_entry.get()
-
-                            self.target_url = entry_url
                             self.start_url_monitoring()
                             self.refresh_page()
                             
@@ -3344,13 +3345,22 @@ class CryptoTrader:
                             self.config['website']['url'] = coin_new_weekly_url
                             self.save_config()
                             self.logger.info(f"{coin}: YES{int(yes_price)}¢|NO{int(no_price)}¢✅ 符合要求,已保存到 config")
-                            # 关闭当前页面
-                            self.driver.close()
+
+                            # 清除url_entry中的url
+                            self.url_entry.delete(0, tk.END)
+                            # 把保存到config的url放到self.url_entry中
+                            self.url_entry.insert(0, coin_new_weekly_url)
+
+                            self.target_url = self.url_entry.get()
+                            # 保存当前窗口句柄
+                            current_window = self.driver.current_window_handle
                             # 切换回原始窗口
                             self.driver.switch_to.window(self.original_window)
-                            # 重启程序
-                            self.restart_program()
-                            return
+                            # 关闭当前窗口
+                            self.driver.close()
+                            # 切换回当前窗口
+                            self.driver.switch_to.window(current_window)
+                        
                         else:
                             self.logger.info(f"{coin}: YES{int(yes_price)}¢|NO{int(no_price)}¢❌ 不符合要求")
                             # 关闭当前页面
@@ -3524,10 +3534,7 @@ class CryptoTrader:
                         # 保存前,先清楚现有的url
                         self.url_entry.delete(0, tk.END)
                         self.url_entry.insert(0, new_weekly_url)
-                        
-                        entry_url = self.url_entry.get()
-                        # 监控当前窗口
-                        self.target_url = entry_url
+                        self.target_url = self.url_entry.get()
                         self.target_url_window = self.driver.current_window_handle
                         time.sleep(8)
                         self.driver.switch_to.window(search_tab)
