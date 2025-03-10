@@ -83,7 +83,7 @@ class CryptoTrader:
         # 添加交易状态
         self.auto_find_coin = False
         self.stop_auto_find = False
-
+        self.start_login_monitoring_running = False
         self.url_monitoring_running = False
         self.refresh_page_running = False
 
@@ -94,10 +94,12 @@ class CryptoTrader:
         self.sell_count = 0  # 添加卖出计数器
         self.refresh_interval = 600000  # 10分钟 = 600000毫秒
         # 添加定时器
-        self.refresh_timer = None  # 用于存储定时器ID
+        self.refresh_page_timer = None  # 用于存储定时器ID
         self.url_check_timer = None
-        # 添加自动找币线程
-        self.auto_find_coin_thread = None
+        self.auto_find_coin_timer = None
+        # 添加URL and refresh_page监控锁
+        self.url_monitoring_lock = threading.Lock()
+        self.refresh_page_lock = threading.Lock()
 
         self.default_target_price = 0.54
         self._amounts_logged = False
@@ -811,13 +813,14 @@ class CryptoTrader:
 
         # 启用更金额按钮
         self.update_amount_button['state'] = 'normal'
-
+        # 启动页面刷新
+        self.root.after(40000, self.refresh_page)
         # 启动登录状态监控
-        self.start_login_monitoring()
+        self.root.after(10000, self.start_login_monitoring)
         # 启动URL监控
-        self.start_url_monitoring()
+        self.root.after(30000, self.start_url_monitoring)
         # 启动自动找币
-        self.start_auto_find_coin()
+        self.root.after(50000, self.start_auto_find_coin)
         
     
     """以下代码是:threading.Thread(target=self._start_browser_monitoring, 
@@ -874,8 +877,9 @@ class CryptoTrader:
                 self.running = True
                 
                 # 启动监控线程
-                threading.Thread(target=self.monitor_prices, daemon=True).start()
-                self.logger.info("启动监控线程")
+                self.monitoring_thread = threading.Thread(target=self.monitor_prices, daemon=True)
+                self.monitoring_thread.start()
+                self.logger.info("✅ 启动实时监控价格和资金线程")
                 
             except Exception as e:
                 error_msg = f"加载网站失败: {str(e)}"
@@ -1106,11 +1110,12 @@ class CryptoTrader:
         try:
             # 检查yes金额是否为非0值
             yes1_amount = self.yes1_amount_entry.get().strip()
+
             if yes1_amount and yes1_amount != '0.0':
                 # 延迟1秒设置价格
                 self.root.after(2000, lambda: self.set_yes_no_default_target_price())
                 # 延迟2秒启动刷新页面
-                self.root.after(3000, self.refresh_page)
+                self.root.after(3000, self.driver.refresh())
             else:
                 if current_retry < 15:  # 最多重试15次
                     self.logger.info("❌ 金额未成功设置,2秒后重试")
@@ -1126,7 +1131,7 @@ class CryptoTrader:
         self.yes1_price_entry.insert(0, self.default_target_price)
         self.no1_price_entry.delete(0, tk.END)
         self.no1_price_entry.insert(0, self.default_target_price)
-        self.logger.info(f"✅ 目标价格{self.default_target_price}设置成功")
+        self.logger.info(f"✅ 设置买入价格{self.default_target_price}成功")
 
     def set_yes_no_cash(self):
         """设置 Yes/No 各级金额"""
@@ -1150,7 +1155,7 @@ class CryptoTrader:
                         raise ValueError("无法从Cash值中提取数字")
                     # 移除逗号并转换为浮点数
                     cash_value = float(cash_match.group(1).replace(',', ''))
-                    self.logger.info(f"提取到Cash值: {cash_value}")
+                    self.logger.info(f"✅ 提取到Cash值: {cash_value}")
                     break
                 except Exception as e:
                     retry_count += 1
@@ -1202,7 +1207,7 @@ class CryptoTrader:
             self.no4_entry.delete(0, tk.END)
             self.no4_entry.insert(0, f"{self.yes4_amount:.2f}")
         
-            self.logger.info("✅ 金额设置完成")
+            self.logger.info("✅ YES/NO 金额设置完成")
             self.update_status("金额设置成功")
             
         except Exception as e:
@@ -1221,34 +1226,54 @@ class CryptoTrader:
     """以下代码是启动 URL 监控和登录状态监控的函数,直到第 1230 行"""
     def start_url_monitoring(self):
         """启动URL监控"""
-        self.logger.info("✅ 启动URL监控")
-        self.url_monitoring_running = True
-        
-        def check_url():
-            if self.running and self.driver:
-                try:
-                    current_page_url = self.driver.current_url
-                    target_url = self.target_url
-                    if current_page_url != target_url:
-                        self.logger.warning("检测到URL变化,正在恢复...")
-                        self.driver.get(target_url)
-                        self.logger.info("✅ 已恢复到正确的监控网址")
-                except Exception as e:
-                    self.logger.error("URL监控出错")
-                
-                # 继续监控
-                if self.running:
-                    self.url_check_timer = self.root.after(3000, check_url)  # 每3秒检查一次
-        
-        # 开始第一次检查
-        self.url_check_timer = self.root.after(1000, check_url)
+        with self.url_monitoring_lock:
+            if getattr(self, 'is_url_monitoring', False):
+                self.logger.debug("URL监控已在运行中")
+                return
+            
+            self.url_monitoring_running = True
+            self.logger.info("✅ 启动URL监控")
+
+            def check_url():
+                if self.running and self.driver:
+                    try:
+                        current_page_url = self.driver.current_url
+                        target_url = self.target_url
+
+                        if current_page_url != target_url:
+                            self.logger.warning("检测到URL变化,正在恢复...")
+                            self.driver.get(target_url)
+                            self.logger.info("✅ 已恢复到正确的监控网址")
+                    except Exception as e:
+                        self.logger.error("URL监控出错")
+                    
+                    # 继续监控
+                    if self.running:
+                        self.url_check_timer = self.root.after(3000, check_url)  # 每3秒检查一次
+            
+            # 开始第一次检查
+            self.url_check_timer = self.root.after(1000, check_url)
 
     def stop_url_monitoring(self):
         """停止URL监控"""
-        if hasattr(self, 'url_check_timer') and self.url_check_timer and self.url_monitoring_running:
-            self.root.after_cancel(self.url_check_timer)
-            self.url_check_timer = None
+        with self.url_monitoring_lock:
+            # 检查是否有正在运行的URL监控
+            if not hasattr(self, 'url_monitoring_running') or not self.url_monitoring_running:
+                self.logger.debug("URL监控未在运行中,无需停止")
+                return
+            
+            # 取消定时器
+            if hasattr(self, 'url_check_timer') and self.url_check_timer:
+                try:
+                    self.root.after_cancel(self.url_check_timer)
+                    self.url_check_timer = None
+                    self.logger.info("❌ 已取消URL监控定时器")
+                except Exception as e:
+                    self.logger.error(f"取消URL监控定时器时出错: {str(e)}")
+            
+            # 重置监控状态
             self.url_monitoring_running = False
+            
             self.logger.info("❌ URL监控已停止")
 
     def find_login_button(self):
@@ -1312,6 +1337,7 @@ class CryptoTrader:
         """执行登录操作"""
         try:
             self.logger.info("开始执行登录操作...")
+            self.start_login_monitoring_running = True
             self.stop_auto_find_coin()
             self.stop_url_monitoring()
             self.stop_refresh_page()
@@ -1389,15 +1415,13 @@ class CryptoTrader:
             # 按ENTER确认
             pyautogui.press('enter')
             
-            
-            # 刷新页面
             self.logger.info("✅ click_accept_button执行完成")
             self.root.after(3000, self.driver.refresh)
             # 延迟5秒启动URL监控    
             self.root.after(6000, self.start_url_monitoring)
             # 延迟10秒启动页面刷新
             self.root.after(10000, self.refresh_page)
-            
+            self.start_login_monitoring_running = False
         except Exception as e:
             self.logger.error(f"click_accept_button执行失败: {str(e)}")
             self.click_accept_button()
@@ -1405,31 +1429,47 @@ class CryptoTrader:
     # 添加刷新方法
     def refresh_page(self):
         """定时刷新页面"""
-        self.refresh_page_running = True
-        try:
-            if self.running and self.driver:
-                if not hasattr(self, 'trading') or not self.trading:  # 仅在非交易状态和不再自动找币时执行刷新
-                    self.driver.refresh()
-                    self.logger.info("✅ 定时刷新成功")    
+        with self.refresh_page_lock:
+            self.refresh_page_running = True
+            try:
+                if self.running and self.driver:
+                    if (hasattr(self, 'trading') and self.trading) or \
+                        (hasattr(self, 'auto_find_coin') and self.auto_find_coin) or \
+                        (hasattr(self, 'start_login_monitoring_running') and self.start_login_monitoring_running):
+                        self.logger.info("交易进行中，跳过本次刷新")  # 仅在非交易状态和不再自动找币时执行刷新
+                        return
+                    else:
+                        self.driver.refresh()
+                        self.logger.info("✅ 定时刷新成功")
+                    
+                    # 无论是否执行刷新都安排下一次（确保循环持续）
+                    self.refresh_page_timer = self.root.after(self.refresh_interval, self.refresh_page)
                 else:
-                    self.logger.info("交易进行中，跳过本次刷新")
-                
-                # 无论是否执行刷新都安排下一次（确保循环持续）
-                self.refresh_timer = self.root.after(self.refresh_interval, self.refresh_page)
-            else:
-                self.logger.info("程序未运行，停止安排刷新")
-        except Exception as e:
-            self.logger.error(f"页面刷新失败: {str(e)}")
-            if self.running:
-                self.refresh_timer = self.root.after(self.refresh_interval, self.refresh_page)
+                    self.logger.info("程序未运行，停止安排刷新")
+            except Exception as e:
+                self.logger.error(f"页面刷新失败: {str(e)}")
+                if self.running:
+                    self.refresh_page_timer = self.root.after(self.refresh_interval, self.refresh_page)
 
     def stop_refresh_page(self):
         """停止页面刷新"""
-        if hasattr(self, 'refresh_timer') and self.refresh_timer and self.refresh_page_running:
-            self.root.after_cancel(self.refresh_timer)
-            self.refresh_timer = None
+        with self.refresh_page_lock:
+            # 检查是否有正在运行的URL监控
+            if not hasattr(self, 'refresh_page_running') or not self.refresh_page_running:
+                self.logger.debug("监控未在运行中,无需停止")
+                return
+
+            if hasattr(self, 'refresh_page_timer') and self.refresh_page_timer and self.refresh_page_running:
+                try:
+                    self.root.after_cancel(self.refresh_page_timer)
+                    self.refresh_page_timer = None
+                    self.logger.info("❌ 已经停止刷新定时器")
+                except Exception as e:
+                    self.logger.error(f"取消页面刷新定时器时出错: {str(e)}")
+
+            # 重置监控状态
             self.refresh_page_running = False
-            self.logger.info("❌ 页面刷新已停止")
+            self.logger.info("❌ 刷新已停止")
 
     """以上代码执行了登录操作的函数,直到第 1315 行,程序执行返回到 748 行"""
    
@@ -3006,7 +3046,7 @@ class CryptoTrader:
     
     def is_auto_find_54_coin_time(self):
         """判断是否处于自动找币时段(周六3点至周五20点)"""
-        self.logger.info("检查是否处于自动找币时段")
+        
         try:
             beijing_tz = timezone(timedelta(hours=8))
             now = datetime.now(timezone.utc).astimezone(beijing_tz)
@@ -3015,14 +3055,14 @@ class CryptoTrader:
             if now.weekday() == 5:
                 # 周六3点至23:59
                 if now.hour >= 3:
-                    self.logger.info("当前处于找币时段")
+                    self.logger.info("✅ 当前处于找币时段")
                     return True
             
             # 周日至周五判断（weekday=6到4）
             elif now.weekday() in (6,0,1,2,3,4):
                 # 全天有效直到周五20点
                 if now.hour < 20 or (now.weekday() != 4 and now.hour >= 20):
-                    self.logger.info("当前处于找币时段")
+                    self.logger.info("✅ 当前处于找币时段")
                     return True
             
             return False
@@ -3058,29 +3098,37 @@ class CryptoTrader:
     def contrast_portfolio_cash(self):
         """对比持仓币对和现金"""
         try:
-            # 取Portfolio值
+            # 尝试从GUI获取值
             try:
-                portfolio_element = self.driver.find_element(By.XPATH, XPathConfig.PORTFOLIO_VALUE)
-                self.portfolio_value = portfolio_element.text
-            except Exception as e:
-                portfolio_element = self._find_element_with_retry(XPathConfig.PORTFOLIO_VALUE)
-                self.portfolio_value = portfolio_element.text
-        
-            # 获取Cash值
-            try:
-                cash_element = self.driver.find_element(By.XPATH, XPathConfig.CASH_VALUE)
-                self.cash_value = cash_element.text
-            except Exception as e:
-                cash_element = self._find_element_with_retry(XPathConfig.CASH_VALUE)
-                self.cash_value = cash_element.text
-
-            value = self.portfolio_value - self.cash_value
-            self.logger.info(f"持仓币对{self.portfolio_value}和现金{self.cash_value}对比: {value}")
-            if value > 2 or value < 0:
-                self.logger.info(f"{value}>1,有持仓")
-                return True
-            else:
-                return False   
+                # 检查portfolio_value和cash_value是否已经存在并且是字符串
+                if hasattr(self, 'portfolio_value') and hasattr(self, 'cash_value'):
+                    # 尝试将字符串转换为数值
+                    if isinstance(self.portfolio_value, str):
+                        portfolio_text = self.portfolio_value.replace("$", "").replace(",", "").strip()
+                        portfolio_value = float(portfolio_text) if portfolio_text else 0 
+                    else:
+                        portfolio_value = self.portfolio_value
+                    
+                    if isinstance(self.cash_value, str):
+                        cash_text = self.cash_value.replace("$", "").replace(",", "").strip()
+                        cash_value = float(cash_text) if cash_text else 0  
+                    else:
+                        cash_value = self.cash_value
+                    
+                    value = round(portfolio_value - cash_value, 2)
+                    
+                    if value > 2 or value < 0:
+                        self.logger.info(f"{value}>1,✅ 有持仓")
+                        return True
+                    else:
+                        self.logger.info(f"{value}<1,❌ 无持仓")
+                        return False
+                else:
+                    self.logger.warning("portfolio_value或cash_value不存在,无法对比")
+                    return False
+            except Exception as inner_e:
+                self.logger.error(f"处理portfolio和cash值失败: {str(inner_e)}")
+                return False
         except Exception as e:
             self.logger.error(f"持仓币对和现金对比异常: {str(e)}")
             return False
@@ -3130,10 +3178,10 @@ class CryptoTrader:
             # 监控当前 URL
             self.target_url = base_url
             time.sleep(2)
-            
+            self.start_url_monitoring()
             self.refresh_page()
             self.stop_auto_find_coin()
-            self.start_url_monitoring()
+            
             return True
 
         # 没有持仓就判断是否到了找币时间
@@ -3145,18 +3193,14 @@ class CryptoTrader:
                 self.stop_refresh_page()
 
                 # 使用线程执行登录检查，避免阻塞主线程
-                self.auto_find_coin_thread = threading.Thread(
-                    target=self.find_54_coin,
-                    daemon=True
-                )
-                self.auto_find_coin_thread.start()
+                self.auto_find_coin_timer = self.root.after(0, self.find_54_coin)
             else:
-                self.logger.info("当前不处于自动找币时段,不进行自动找币")
+                self.logger.info("❌ 当前不处于自动找币时段")
                 self.auto_find_coin = False
 
     def find_54_coin(self):
         """自动找币"""
-        self.logger.info("✅当前没有持仓,开始自动找币")
+        self.logger.info("✅ 当前没有持仓,开始自动找币")
         try:
             # 检查driver是否存在
             if not hasattr(self, 'driver') or self.driver is None:
@@ -3316,11 +3360,23 @@ class CryptoTrader:
 
     def stop_auto_find_coin(self):
         """停止自动找币"""
-        self.auto_find_coin = False  # 设置标志位，让循环内部可以检测到停止信号
-        self.stop_auto_find = True
-        
-        self.logger.info("❌ 自动找币已停止")
-        self.update_status("自动找币已停止")
+        try:
+            if not hasattr(self, 'auto_find_coin') or not self.auto_find_coin:
+                self.logger.debug("自动找币未在运行中,无需停止")
+                return
+            
+            # 取消定时器
+            if hasattr(self, 'auto_find_coin_timer') and self.auto_find_coin_timer:
+                self.root.after_cancel(self.auto_find_coin_timer)
+                self.auto_find_coin_timer = None
+                self.logger.info("✅ 自动找币定时器已取消")
+            else:
+                self.logger.info("自动找币未在运行中,无需停止")
+            
+            self.auto_find_coin = False  # 设置标志位，让循环内部可以检测到停止信号
+            self.logger.info("❌ 自动找币已停止")
+        except Exception as e:
+            self.logger.error(f"停止自动找币时发生错误: {str(e)}")
 
     def find_new_weekly_url(self, coin):
         """在Polymarket市场搜索指定币种的周合约地址,只返回周合约地址"""
