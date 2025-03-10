@@ -248,7 +248,7 @@ class CryptoTrader:
     """从这里开始设置 GUI 直到 761 行"""
     def setup_gui(self):
         self.root = tk.Tk()
-        self.root.title("Polymarket automatic trading")
+        self.root.title("Polymarket 4次自动交易4%利润率！")
         # 创建主滚动框架
         main_canvas = tk.Canvas(self.root)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=main_canvas.yview)
@@ -308,10 +308,10 @@ class CryptoTrader:
         style.configure('Red.TLabel', foreground='red', font=('TkDefaultFont', 14, 'normal'))
         style.configure('Red.TLabelframe.Label', foreground='red')  # 设置标签文本颜色为红色
         style.configure('Black.TLabel', foreground='black', font=('TkDefaultFont', 14, 'normal'))
-        style.configure('Warning.TLabelframe.Label', font=('TkDefaultFont', 14, 'bold'),foreground='red', anchor='center', justify='center')
+        style.configure('Warning.TLabelframe.Label', font=('TkDefaultFont', 18, 'bold'),foreground='red', anchor='center', justify='center')
         
         # 金额设置框架
-        amount_settings_frame = ttk.LabelFrame(scrollable_frame, text="Do't be greedy, or you will lose money!", padding=(2, 5), style='Warning.TLabelframe')
+        amount_settings_frame = ttk.LabelFrame(scrollable_frame, text="以时间换利润，不可贪心，否则一定亏钱!", padding=(2, 5), style='Warning.TLabelframe')
         amount_settings_frame.pack(fill="x", padx=5, pady=5)
 
         # 创建一个Frame来水平排列标题和警告
@@ -320,9 +320,9 @@ class CryptoTrader:
 
         # 添加标题和红色警告文本在同一行
         ttk.Label(title_frame, 
-                text="Rule: Do not intervene in the automatic program!",
+                text="铁律:不得人为干预自动程序!",
                 foreground='red',
-                font=('TkDefaultFont', 14, 'bold')).pack(side=tk.RIGHT, expand=True)
+                font=('TkDefaultFont', 18, 'bold')).pack(side=tk.RIGHT, expand=True)
 
         # 创建金额设置容器的内部框架
         settings_container = ttk.Frame(amount_settings_frame)
@@ -337,7 +337,7 @@ class CryptoTrader:
         # 初始金额等输入框放在amount_frame中
         initial_frame = ttk.Frame(amount_frame)
         initial_frame.pack(side=tk.LEFT, padx=2)
-        ttk.Label(initial_frame, text="Initial:").pack(side=tk.LEFT)
+        ttk.Label(initial_frame, text="初始金额:").pack(side=tk.LEFT)
         self.initial_amount_entry = ttk.Entry(initial_frame, width=2)
         self.initial_amount_entry.pack(side=tk.LEFT)
         self.initial_amount_entry.insert(0, "6")
@@ -345,7 +345,7 @@ class CryptoTrader:
         # 反水一次设置
         first_frame = ttk.Frame(amount_frame)
         first_frame.pack(side=tk.LEFT, padx=2)
-        ttk.Label(first_frame, text="Turn-1:").pack(side=tk.LEFT)
+        ttk.Label(first_frame, text="反水一:").pack(side=tk.LEFT)
         self.first_rebound_entry = ttk.Entry(first_frame, width=3)
         self.first_rebound_entry.pack(side=tk.LEFT)
         self.first_rebound_entry.insert(0, "300")
@@ -353,7 +353,7 @@ class CryptoTrader:
         # 反水N次设置
         n_frame = ttk.Frame(amount_frame)
         n_frame.pack(side=tk.LEFT, padx=2)
-        ttk.Label(n_frame, text="Turn-N:").pack(side=tk.LEFT)
+        ttk.Label(n_frame, text="反水N:").pack(side=tk.LEFT)
         self.n_rebound_entry = ttk.Entry(n_frame, width=3)
         self.n_rebound_entry.pack(side=tk.LEFT)
         self.n_rebound_entry.insert(0, "160")
@@ -361,7 +361,7 @@ class CryptoTrader:
         # 利润率设置
         profit_frame = ttk.Frame(amount_frame)
         profit_frame.pack(side=tk.LEFT, padx=2)
-        ttk.Label(profit_frame, text="Margin:").pack(side=tk.LEFT)
+        ttk.Label(profit_frame, text="利率:").pack(side=tk.LEFT)
         self.profit_rate_entry = ttk.Entry(profit_frame, width=2)
         self.profit_rate_entry.pack(side=tk.LEFT)
         self.profit_rate_entry.insert(0, "6")
@@ -372,10 +372,10 @@ class CryptoTrader:
         self.doubling_weeks_entry = ttk.Entry(weeks_frame, width=2, style='Red.TEntry')
         self.doubling_weeks_entry.pack(side=tk.LEFT)
         self.doubling_weeks_entry.insert(0, "15")
-        ttk.Label(weeks_frame, text="Double", style='Red.TLabel').pack(side=tk.LEFT)
+        ttk.Label(weeks_frame, text="周翻倍", style='Red.TLabel').pack(side=tk.LEFT)
 
         # 交易币种按钮放在trades_frame中
-        ttk.Label(trades_frame, text="Cryptos:", style='Black.TLabel').pack(side=tk.LEFT, padx=(2,2))
+        ttk.Label(trades_frame, text="交易币种:", style='Black.TLabel').pack(side=tk.LEFT, padx=(2,2))
         buttons_frame = ttk.Frame(trades_frame)
         buttons_frame.pack(side=tk.LEFT, padx=(0,0))
 
@@ -417,8 +417,7 @@ class CryptoTrader:
             settings_container.grid_columnconfigure(i, weight=1)
 
         """设置窗口大小和位置"""
-
-        window_width = 490
+        window_width = 480
         window_height = 800
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -427,12 +426,12 @@ class CryptoTrader:
         self.root.geometry(f'{window_width}x{window_height}+{x}+{y}')
         
         # 监控网站配置
-        url_frame = ttk.LabelFrame(scrollable_frame, text="Monitoring-Website-Configuration", padding=(2, 2))
+        url_frame = ttk.LabelFrame(scrollable_frame, text="监控网站配置", padding=(2, 2))
         url_frame.pack(fill="x", padx=10, pady=5)
-        ttk.Label(url_frame, text="Add:", font=('Arial', 10)).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Label(url_frame, text="地址:", font=('Arial', 10)).grid(row=0, column=0, padx=5, pady=5)
         
         # 创建下拉列和输入框组合控件
-        self.url_entry = ttk.Combobox(url_frame, width=40)
+        self.url_entry = ttk.Combobox(url_frame, width=42)
         self.url_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         
         # 从配置文件加载历史记录
@@ -450,21 +449,21 @@ class CryptoTrader:
         button_frame.pack(fill="x", padx=5, pady=5)
         
         # 开始和停止按钮
-        self.start_button = ttk.Button(button_frame, text="Start", 
-                                          command=self.start_monitoring, width=3.5,
+        self.start_button = ttk.Button(button_frame, text="开始监控", 
+                                          command=self.start_monitoring, width=6,
                                           style='Black.TButton')  # 默认使用黑色文字
         self.start_button.pack(side=tk.LEFT, padx=1)
         
         
-        self.stop_button = ttk.Button(button_frame, text="Stop", 
-                                     command=self.stop_monitoring, width=3.5,
+        self.stop_button = ttk.Button(button_frame, text="停止监控", 
+                                     command=self.stop_monitoring, width=6,
                                      style='Black.TButton')  # 默认使用黑色文字
         self.stop_button.pack(side=tk.LEFT, padx=1)
         self.stop_button['state'] = 'disabled'
         
         # 更新下单金额按钮
-        self.update_amount_button = ttk.Button(button_frame, text="Update-Amount", 
-                                             command=self.set_yes_no_cash, width=12,
+        self.update_amount_button = ttk.Button(button_frame, text="更新下单金额", 
+                                             command=self.set_yes_no_cash, width=9,
                                              style='Black.TButton')  # 默认使用黑色文字
         self.update_amount_button.pack(side=tk.LEFT, padx=1)
         self.update_amount_button['state'] = 'disabled'  # 初始禁用
@@ -490,14 +489,14 @@ class CryptoTrader:
         pair_container.pack(anchor="center")
         
         # 交易币种及日期，颜色为蓝色
-        ttk.Label(pair_container, text="Trading-Pair-Date:", 
+        ttk.Label(pair_container, text="交易币种及日期:", 
                  font=('Arial', 14), foreground='blue').pack(side=tk.LEFT, padx=5)
         self.trading_pair_label = ttk.Label(pair_container, text="--", 
                                         font=('Arial', 16, 'bold'), foreground='blue')
         self.trading_pair_label.pack(side=tk.LEFT, padx=5)
         
         # 修改实时价格显示区域
-        price_frame = ttk.LabelFrame(scrollable_frame, text="Price", padding=(5, 5))
+        price_frame = ttk.LabelFrame(scrollable_frame, text="实时价格", padding=(5, 5))
         price_frame.pack(padx=5, pady=5, fill="x")
         
         # 创建一个框架来水平排列所有价格信息
@@ -505,22 +504,22 @@ class CryptoTrader:
         prices_container.pack(expand=True)  # 添加expand=True使容器居中
         
         # Yes实时价格显示
-        self.yes_price_label = ttk.Label(prices_container, text="Yes: waiting for data...", 
+        self.yes_price_label = ttk.Label(prices_container, text="Yes: 等待数据...", 
                                         font=('Arial', 20), foreground='#9370DB')
         self.yes_price_label.pack(side=tk.LEFT, padx=20)
         
         # No实时价格显示
-        self.no_price_label = ttk.Label(prices_container, text="No: waiting for data...", 
+        self.no_price_label = ttk.Label(prices_container, text="No: 等待数据...", 
                                        font=('Arial', 20), foreground='#9370DB')
         self.no_price_label.pack(side=tk.LEFT, padx=20)
         
         # 最后更新时间 - 靠右下对齐
-        self.last_update_label = ttk.Label(price_frame, text="Last-Update: --", 
+        self.last_update_label = ttk.Label(price_frame, text="最后更新: --", 
                                           font=('Arial', 2))
         self.last_update_label.pack(side=tk.LEFT, anchor='se', padx=5)
         
         # 修改实时资金显示区域
-        balance_frame = ttk.LabelFrame(scrollable_frame, text="Balance", padding=(5, 5))
+        balance_frame = ttk.LabelFrame(scrollable_frame, text="实时资金", padding=(5, 5))
         balance_frame.pack(padx=5, pady=5, fill="x")
         
         # 创建一个框架来水平排列所有资金信息
@@ -528,17 +527,17 @@ class CryptoTrader:
         balance_container.pack(expand=True)  # 添加expand=True使容器居中
         
         # Portfolio显示
-        self.portfolio_label = ttk.Label(balance_container, text="Portfolio: waiting for data...", 
+        self.portfolio_label = ttk.Label(balance_container, text="Portfolio: 等待数据...", 
                                         font=('Arial', 20), foreground='#9370DB') # 修改为绿色
         self.portfolio_label.pack(side=tk.LEFT, padx=20)
         
         # Cash显示
-        self.cash_label = ttk.Label(balance_container, text="Cash: waiting for data...", 
+        self.cash_label = ttk.Label(balance_container, text="Cash: 等待数据...", 
                                    font=('Arial', 20), foreground='#9370DB') # 修改为绿色
         self.cash_label.pack(side=tk.LEFT, padx=20)
         
         # 最后更新时间 - 靠右下对齐
-        self.balance_update_label = ttk.Label(balance_frame, text="Last-Update: --", 
+        self.balance_update_label = ttk.Label(balance_frame, text="最后更新: --", 
                                            font=('Arial', 2))
         self.balance_update_label.pack(side=tk.LEFT, anchor='se', padx=5)
         
@@ -675,7 +674,7 @@ class CryptoTrader:
 
 
         # 创建买入按钮区域
-        buy_frame = ttk.LabelFrame(scrollable_frame, text="Buy-Button", padding=(2, 0))
+        buy_frame = ttk.LabelFrame(scrollable_frame, text="买入按钮", padding=(2, 0))
         buy_frame.pack(fill="x", padx=(0,0), pady=2)
 
         # 创建按钮框架
@@ -695,7 +694,7 @@ class CryptoTrader:
                                        command=self.click_buy_no)
         self.buy_no_button.grid(row=0, column=2, padx=2, pady=5)
 
-        self.buy_confirm_button = ttk.Button(buy_button_frame, text="Buy-confirm", width=8,
+        self.buy_confirm_button = ttk.Button(buy_button_frame, text="Buy-买入", width=8,
                                             command=self.click_buy_confirm_button)
         self.buy_confirm_button.grid(row=0, column=3, padx=2, pady=5)
 
@@ -739,7 +738,7 @@ class CryptoTrader:
             buy_button_frame.grid_columnconfigure(i, weight=1)
 
         # 修改卖出按钮区域
-        sell_frame = ttk.LabelFrame(scrollable_frame, text="Sell-Button", padding=(10, 5))
+        sell_frame = ttk.LabelFrame(scrollable_frame, text="卖出按钮", padding=(10, 5))
         sell_frame.pack(fill="x", padx=2, pady=5)
 
         # 创建按钮框架
@@ -755,7 +754,7 @@ class CryptoTrader:
                                                 command=self.click_position_sell_no)
         self.position_sell_no_button.grid(row=0, column=1, padx=2, pady=5)
 
-        self.sell_profit_button = ttk.Button(button_frame, text="Sell-profit", width=10,
+        self.sell_profit_button = ttk.Button(button_frame, text="Sell-卖出", width=10,
                                            command=self.click_profit_sell)
         self.sell_profit_button.grid(row=0, column=2, padx=2, pady=5)
 
@@ -768,7 +767,7 @@ class CryptoTrader:
                                        command=self.click_sell_no)
         self.sell_no_button.grid(row=1, column=1, padx=2, pady=5)
 
-        self.restart_program_button = ttk.Button(button_frame, text="Restart", width=6,
+        self.restart_program_button = ttk.Button(button_frame, text="重启", width=6,
                                                  command=self.restart_program)
         self.restart_program_button.grid(row=1, column=2, padx=2, pady=5)
 
@@ -777,7 +776,7 @@ class CryptoTrader:
             button_frame.grid_columnconfigure(i, weight=1)
 
         # 添加状态标签 (在卖出按钮区域之后)
-        self.status_label = ttk.Label(scrollable_frame, text="Status: Not running", 
+        self.status_label = ttk.Label(scrollable_frame, text="状态: 未运行", 
                                      font=('Arial', 10, 'bold'))
         self.status_label.pack(pady=5)
         
