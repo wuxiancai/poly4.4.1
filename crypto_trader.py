@@ -2050,7 +2050,10 @@ class CryptoTrader:
                         # 执行卖出YES操作
                         self.only_sell_yes()
                         self.logger.info("卖完 YES 后，再卖 NO")
-                        self.only_sell_no()
+                        # 卖 NO 之前先检查是否有 NO 标签
+                        position_label_no = self.find_position_label_no()
+                        if position_label_no == "No":
+                            self.only_sell_no()
                         # 重置所有价格
                         for i in range(1,6):  # 1-5
                             yes_entry = getattr(self, f'yes{i}_price_entry', None)
@@ -2116,7 +2119,11 @@ class CryptoTrader:
                         # 卖完 NO 后，自动再卖 YES                      
                         self.only_sell_no()
                         self.logger.info("卖完 NO 后，再卖 YES")
-                        self.only_sell_yes()
+
+                        position_label_yes = self.find_position_label_yes()
+                        if position_label_yes == "Yes":
+                            self.only_sell_yes()
+
                         # 重置所有价格
                         for i in range(1,6):  # 1-5
                             yes_entry = getattr(self, f'yes{i}_price_entry', None)
@@ -2140,7 +2147,101 @@ class CryptoTrader:
             self.update_status(f"Sell_no执行失败: {str(e)}")
         finally:
             self.trading = False
-    """以上代码是交易主体函数 1-4,从第 1370 行到第 2027行"""
+
+    def only_sell_yes(self):
+        """只卖出YES"""
+        # 获取当前价格
+        prices = self.driver.execute_script("""
+                function getPrices() {
+                    const prices = {yes: null, no: null};
+                    const elements = document.getElementsByTagName('span');
+                    
+                    for (let el of elements) {
+                        const text = el.textContent.trim();
+                        if (text.includes('Yes') && text.includes('¢')) {
+                            const match = text.match(/(\\d+\\.?\\d*)¢/);
+                            if (match) prices.yes = parseFloat(match[1]);
+                        }
+                        if (text.includes('No') && text.includes('¢')) {
+                            const match = text.match(/(\\d+\\.?\\d*)¢/);
+                            if (match) prices.no = parseFloat(match[1]);
+                        }
+                    }
+                    return prices;
+                }
+                return getPrices();
+            """)
+        yes_price = float(prices['yes']) / 100 if prices['yes'] else 0
+
+        self.position_sell_yes_button.invoke()
+        time.sleep(0.5)
+        self.sell_profit_button.invoke()
+        
+        self.sleep_refresh("only_sell_yes")
+
+        if self.Verify_sold_yes():
+             # 增加卖出计数
+            self.sell_count += 1
+                
+            # 发送交易邮件 - 卖出YES
+            self.send_trade_email(
+                trade_type="Sell Yes",
+                price=yes_price,
+                amount=self.position_yes_cash(),  # 卖出时金额为总持仓
+                trade_count=self.sell_count  # 使用卖出计数器
+            )
+        else:
+            self.logger.warning("卖出only_sell_yes验证失败,重试")
+            return self.only_sell_yes()        
+       
+    def only_sell_no(self):
+        """只卖出NO"""
+        # 获取当前价格
+        prices = self.driver.execute_script("""
+                function getPrices() {
+                    const prices = {yes: null, no: null};
+                    const elements = document.getElementsByTagName('span');
+                    
+                    for (let el of elements) {
+                        const text = el.textContent.trim();
+                        if (text.includes('Yes') && text.includes('¢')) {
+                            const match = text.match(/(\\d+\\.?\\d*)¢/);
+                            if (match) prices.yes = parseFloat(match[1]);
+                        }
+                        if (text.includes('No') && text.includes('¢')) {
+                            const match = text.match(/(\\d+\\.?\\d*)¢/);
+                            if (match) prices.no = parseFloat(match[1]);
+                        }
+                    }
+                    return prices;
+                }
+                return getPrices();
+            """)
+        no_price = float(prices['no']) / 100 if prices['no'] else 0
+
+        self.position_sell_no_button.invoke()
+        time.sleep(0.5)
+        self.sell_profit_button.invoke()
+        
+        # 执行等待和刷新
+        self.sleep_refresh("only_sell_no")
+        
+        if self.Verify_sold_no():
+            # 增加卖出计数
+            self.sell_count += 1
+                
+            # 发送交易邮件 - 卖出NO
+            self.send_trade_email(
+                trade_type="Sell No",
+                price=no_price,
+                amount=self.position_no_cash(),  # 卖出时金额为总持仓
+                trade_count=self.sell_count  # 使用卖出计数器
+            )
+        else:
+            self.logger.warning("卖出only_sell_no验证失败,重试")
+            return self.only_sell_no()
+        
+    """以上代码是交易主体函数 1-4,从第 1370 行到第 2237行"""
 
     """以下代码是交易过程中的各种方法函数，涉及到按钮的点击，从第 2029 行到第 2295 行"""
     def click_buy_confirm_button(self):
@@ -2601,99 +2702,6 @@ class CryptoTrader:
         except Exception as e:
             self.logger.warning(f"Verify_sold_no执行失败: {str(e)}")
             return False
-
-    def only_sell_yes(self):
-        """只卖出YES"""
-        # 获取当前价格
-        prices = self.driver.execute_script("""
-                function getPrices() {
-                    const prices = {yes: null, no: null};
-                    const elements = document.getElementsByTagName('span');
-                    
-                    for (let el of elements) {
-                        const text = el.textContent.trim();
-                        if (text.includes('Yes') && text.includes('¢')) {
-                            const match = text.match(/(\\d+\\.?\\d*)¢/);
-                            if (match) prices.yes = parseFloat(match[1]);
-                        }
-                        if (text.includes('No') && text.includes('¢')) {
-                            const match = text.match(/(\\d+\\.?\\d*)¢/);
-                            if (match) prices.no = parseFloat(match[1]);
-                        }
-                    }
-                    return prices;
-                }
-                return getPrices();
-            """)
-        yes_price = float(prices['yes']) / 100 if prices['yes'] else 0
-
-        self.position_sell_yes_button.invoke()
-        time.sleep(0.5)
-        self.sell_profit_button.invoke()
-        
-        self.sleep_refresh("only_sell_yes")
-
-        if self.Verify_sold_yes():
-             # 增加卖出计数
-            self.sell_count += 1
-                
-            # 发送交易邮件 - 卖出YES
-            self.send_trade_email(
-                trade_type="Sell Yes",
-                price=yes_price,
-                amount=self.position_yes_cash(),  # 卖出时金额为总持仓
-                trade_count=self.sell_count  # 使用卖出计数器
-            )
-        else:
-            self.logger.warning("卖出only_sell_yes验证失败,重试")
-            return self.only_sell_yes()        
-       
-    def only_sell_no(self):
-        """只卖出NO"""
-        # 获取当前价格
-        prices = self.driver.execute_script("""
-                function getPrices() {
-                    const prices = {yes: null, no: null};
-                    const elements = document.getElementsByTagName('span');
-                    
-                    for (let el of elements) {
-                        const text = el.textContent.trim();
-                        if (text.includes('Yes') && text.includes('¢')) {
-                            const match = text.match(/(\\d+\\.?\\d*)¢/);
-                            if (match) prices.yes = parseFloat(match[1]);
-                        }
-                        if (text.includes('No') && text.includes('¢')) {
-                            const match = text.match(/(\\d+\\.?\\d*)¢/);
-                            if (match) prices.no = parseFloat(match[1]);
-                        }
-                    }
-                    return prices;
-                }
-                return getPrices();
-            """)
-        no_price = float(prices['no']) / 100 if prices['no'] else 0
-
-        self.position_sell_no_button.invoke()
-        time.sleep(0.5)
-        self.sell_profit_button.invoke()
-        
-        # 执行等待和刷新
-        self.sleep_refresh("only_sell_no")
-        
-        if self.Verify_sold_no():
-            # 增加卖出计数
-            self.sell_count += 1
-                
-            # 发送交易邮件 - 卖出NO
-            self.send_trade_email(
-                trade_type="Sell No",
-                price=no_price,
-                amount=self.position_no_cash(),  # 卖出时金额为总持仓
-                trade_count=self.sell_count  # 使用卖出计数器
-            )
-        else:
-            self.logger.warning("卖出only_sell_no验证失败,重试")
-            return self.only_sell_no()
         
     """以下代码是程序重启功能,从第 2548 行到第 2651 行"""
     def restart_program(self):
@@ -3088,11 +3096,11 @@ class CryptoTrader:
                     
                     value = round(portfolio_value - cash_value, 2)
                     
-                    if value > 1:
-                        self.logger.info(f"{value}>1,✅ 有持仓")
+                    if value > 0.5:
+                        self.logger.info(f"{value}>0,✅ 有持仓")
                         return True
                     else:
-                        self.logger.info(f"{value}<1,❌ 无持仓")
+                        self.logger.info(f"{value}=0,❌ 无持仓")
                         return False
                 else:
                     self.logger.warning("portfolio_value或cash_value不存在,无法对比")
