@@ -3105,7 +3105,7 @@ class CryptoTrader:
                     
                     value = round(portfolio_value - cash_value, 2)
                     
-                    if value > 2 or value < 0:
+                    if value > 1:
                         self.logger.info(f"{value}>1,✅ 有持仓")
                         return True
                     else:
