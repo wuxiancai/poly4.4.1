@@ -1434,9 +1434,14 @@ class CryptoTrader:
             self.refresh_page_running = True
             try:
                 if self.running and self.driver:
-                    if (hasattr(self, 'trading') and self.trading) or \
-                        (hasattr(self, 'start_login_monitoring_running') and self.start_login_monitoring_running):
-                        self.logger.info("交易进行中，跳过本次刷新")  # 仅在非交易状态和不再自动找币时执行刷新
+                    if (hasattr(self, 'trading') and self.trading):
+                        self.logger.info("交易进行中，跳过本次刷新")  
+                        return
+                    elif (hasattr(self, 'start_login_monitoring_running') and self.start_login_monitoring_running):
+                        self.logger.info("登录状态监控进行中，跳过本次刷新")
+                        return
+                    elif (hasattr(self, 'start_auto_find_coin_running') and self.start_auto_find_coin_running):
+                        self.logger.info("自动找币进行中，跳过本次刷新")
                         return
                     else:
                         self.driver.refresh()
@@ -3126,6 +3131,7 @@ class CryptoTrader:
             else:
                 self.stop_url_monitoring()
                 self.stop_refresh_page()
+                self.start_auto_find_coin_running = True
                 try:
                     # 点击 Portfolio 按钮 
                     portfolio_button = self.driver.find_element(By.XPATH, XPathConfig.PORTFOLIO_BUTTON)
@@ -3191,6 +3197,7 @@ class CryptoTrader:
                 time.sleep(2)
                 self.start_url_monitoring()
                 self.refresh_page()
+                self.start_auto_find_coin_running = False
                 self.stop_auto_find_coin()
                 
                 return True
@@ -3210,7 +3217,7 @@ class CryptoTrader:
             self.auto_find_coin = True
             self.stop_url_monitoring()
             self.stop_refresh_page()
-
+            self.start_auto_find_coin_running = True
             # 检查driver是否存在
             if not hasattr(self, 'driver') or self.driver is None:
                 self.logger.error("浏览器驱动不存在，无法执行自动找币")
@@ -3379,6 +3386,7 @@ class CryptoTrader:
             
             self.root.after(10000, self.refresh_page)
             self.root.after(5000, self.start_url_monitoring)
+            self.start_auto_find_coin_running = False
             # 增加 10 分钟后再次找币
             self.root.after(600000, self.find_54_coin)
             self.logger.info("10分钟后再次找币")
