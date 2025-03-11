@@ -1447,16 +1447,17 @@ class CryptoTrader:
                         return
                     else:
                         self.driver.refresh()
-                        self.logger.info("✅ 定时刷新成功")
-                    
-                    # 无论是否执行刷新都安排下一次（确保循环持续）
-                    self.refresh_page_timer = self.root.after(self.refresh_interval, self.refresh_page)
+                        self.logger.info("✅ 定时刷新成功")      
                 else:
                     self.logger.info("程序未运行，停止安排刷新")
+
             except Exception as e:
                 self.logger.error(f"页面刷新失败: {str(e)}")
                 if self.running:
                     self.refresh_page_timer = self.root.after(self.refresh_interval, self.refresh_page)
+            finally:
+                # 无论是否执行刷新都安排下一次（确保循环持续）
+                self.refresh_page_timer = self.root.after(self.refresh_interval, self.refresh_page)
 
     def stop_refresh_page(self):
         """停止页面刷新"""
