@@ -2941,6 +2941,7 @@ class CryptoTrader:
                 else:
                     raise
     """以下代码是自动找币功能,从第 2981 行到第 3000 行"""
+
     # 自动找币第一步:判断是否持仓,是否到了找币时间
     def find_position_label_yes(self):
         """查找Yes持仓标签"""
@@ -2960,29 +2961,19 @@ class CryptoTrader:
                 
                 # 尝试获取YES标签
                 try:
-                    try:
-                        position_label_yes = self.driver.find_element(By.XPATH, XPathConfig.POSITION_YES_LABEL)
-                    except NoSuchElementException:
-                        position_label_yes = self._find_element_with_retry(
-                            XPathConfig.POSITION_YES_LABEL,
-                            timeout=3,
-                            silent=True
-                        )
+                    position_label_yes = self.driver.find_element(By.XPATH, XPathConfig.POSITION_YES_LABEL)
+                    self.logger.info(f"找到了Yes持仓标签: {position_label_yes.text}")
                     
-                    # 如果找到了标签，返回标签文本
-                    if position_label_yes:
-                        return position_label_yes.text
-                    else:
-                        self.logger.info("未找到Yes持仓")
-                        return None
-                    
-                except NoSuchElementException:
-                    self.logger.debug("未找到Yes持仓标签")
+                except Exception:
+                    position_label_yes = self._find_element_with_retry(XPathConfig.POSITION_YES_LABEL, timeout=3, silent=True)
+                    self.logger.info(f"找到了Yes持仓标签: {position_label_yes.text}")
+                # 如果找到了标签，返回标签文本
+                if position_label_yes:
+                    return position_label_yes.text
+                else:
+                    self.logger.info("未找到Yes持仓")
                     return None
-                except Exception as e:
-                    self.logger.error(f"查找Yes标签异常: {str(e)}")
-                    return None
-                    
+                         
             except TimeoutException:
                 self.logger.debug(f"第{attempt + 1}次尝试未找到YES标签,正常情况!")
             except Exception as e:
@@ -3012,28 +3003,19 @@ class CryptoTrader:
                 
                 # 尝试获取NO标签
                 try:
-                    try:
-                        position_label_no = self.driver.find_element(By.XPATH, XPathConfig.POSITION_NO_LABEL)
-                    except NoSuchElementException: 
-                        position_label_no = self._find_element_with_retry(
-                                XPathConfig.POSITION_NO_LABEL,
-                                timeout=3,
-                                silent=True
-                        )
-                    # 如果找到了标签，返回标签文本
-                    if position_label_no:
-                        return position_label_no.text
-                    else:
-                        self.logger.info("未找到No持仓")
-                        return None
+                    position_label_no = self.driver.find_element(By.XPATH, XPathConfig.POSITION_NO_LABEL)
+                    self.logger.info(f"找到了No持仓标签: {position_label_no.text}")
                     
-                except NoSuchElementException:
-                    self.logger.debug("未找到No持仓标签")
+                except Exception:
+                    position_label_no = self._find_element_with_retry(XPathConfig.POSITION_NO_LABEL, timeout=3, silent=True)
+                    self.logger.info(f"找到了No持仓标签: {position_label_no.text}")
+                # 如果找到了标签，返回标签文本
+                if position_label_no:
+                    return position_label_no.text
+                else:
+                    self.logger.info("未找到No持仓")
                     return None
-                except Exception as e:
-                    self.logger.error(f"查找No标签异常: {str(e)}")
-                    return None
-                    
+                               
             except TimeoutException:
                 self.logger.warning(f"第{attempt + 1}次尝试未找到NO标签")
             except Exception as e:
@@ -3076,20 +3058,20 @@ class CryptoTrader:
         self.logger.info("检查当前是否持仓")
         try:
             # 同时检查Yes/No两种持仓标签
-            yes_element = self.find_position_label_yes()
-            no_element = self.find_position_label_no()
+            self.yes_element = self.find_position_label_yes()
+            self.no_element = self.find_position_label_no()
 
             full_pair = self.trading_pair_label.cget("text")
             trading_pair = full_pair.split('-above')[0]
 
             # 任一标签显示持仓状态即返回True
-            if (yes_element and yes_element=="Yes") or (no_element and no_element=="No"):
-                self.logger.info(f"检测到持仓状态,持仓为{trading_pair}:{yes_element}或{no_element}")
+            if (self.yes_element and self.yes_element=="Yes") or (self.no_element and self.no_element=="No"):
+                self.logger.info(f"检测到持仓状态,持仓为{trading_pair}:{self.yes_element}或{self.no_element}")
                 return True
-            elif yes_element is None and no_element is None:
+            elif self.yes_element is None and self.no_element is None:
                 return False
             else:
-                return False
+                return False    
             
         except Exception as e:
             self.logger.error(f"持仓检查异常: {str(e)}")
@@ -3138,77 +3120,80 @@ class CryptoTrader:
         """启动自动找币"""
         # 先判断是否持仓
         if self.contrast_portfolio_cash():
-            self.stop_url_monitoring()
-            self.stop_refresh_page()
-            try:
-                # 点击 Portfolio 按钮 
-                portfolio_button = self.driver.find_element(By.XPATH, XPathConfig.PORTFOLIO_BUTTON)
-                self.logger.info(f"点击Portfolio按钮: {portfolio_button}")
-                portfolio_button.click()
-                time.sleep(1)
-            except Exception as e: 
-                # 尝试使用_find_element_with_retry方法
+            if self.is_position_yes_or_no():
+                self.logger.info(f"✅ 当前有持仓{self.yes_element}或{self.no_element},不进行自动找币")
+                return
+            else:
+                self.stop_url_monitoring()
+                self.stop_refresh_page()
                 try:
-                    portfolio_button = self._find_element_with_retry(
-                        XPathConfig.PORTFOLIO_BUTTON,
-                        timeout=3,
-                        silent=True
-                    )
-                    if portfolio_button:
-                        portfolio_button.click()
-                        time.sleep(1)
-                    else:
-                        self.logger.error("无法找到Portfolio按钮")
+                    # 点击 Portfolio 按钮 
+                    portfolio_button = self.driver.find_element(By.XPATH, XPathConfig.PORTFOLIO_BUTTON)
+                    self.logger.info(f"点击Portfolio按钮: {portfolio_button}")
+                    portfolio_button.click()
+                    time.sleep(1)
+                except Exception as e: 
+                    # 尝试使用_find_element_with_retry方法
+                    try:
+                        portfolio_button = self._find_element_with_retry(
+                            XPathConfig.PORTFOLIO_BUTTON,
+                            timeout=3,
+                            silent=True
+                        )
+                        if portfolio_button:
+                            portfolio_button.click()
+                            time.sleep(1)
+                        else:
+                            self.logger.error("无法找到Portfolio按钮")
+                            return False
+                    except Exception as retry_e:
+                        self.logger.error(f"使用retry方法点击Portfolio按钮失败: {str(retry_e)}")
                         return False
-                except Exception as retry_e:
-                    self.logger.error(f"使用retry方法点击Portfolio按钮失败: {str(retry_e)}")
-                    return False
-                
-            try:
-                # 点击 FIND_PORTFOLIO_COIN_BUTTON按钮 
-                find_portfolio_coin_button = self.driver.find_element(By.XPATH, XPathConfig.FIND_PORTFOLIO_COIN_BUTTON)
-                self.logger.info(f"点击FIND_PORTFOLIO_COIN_BUTTON按钮: {find_portfolio_coin_button}")
-                find_portfolio_coin_button.click()
-                
-            except Exception as e: 
-                # 尝试使用_find_element_with_retry方法
+                    
                 try:
-                    find_portfolio_coin_button = self._find_element_with_retry(
-                        XPathConfig.FIND_PORTFOLIO_COIN_BUTTON,
-                        timeout=3,
-                        silent=True
-                    )
-                    if find_portfolio_coin_button:
-                        find_portfolio_coin_button.click()
-                        
-                    else:
-                        self.logger.error("无法找到FIND_PORTFOLIO_COIN_BUTTON按钮")
+                    # 点击 FIND_PORTFOLIO_COIN_BUTTON按钮 
+                    find_portfolio_coin_button = self.driver.find_element(By.XPATH, XPathConfig.FIND_PORTFOLIO_COIN_BUTTON)
+                    self.logger.info(f"点击FIND_PORTFOLIO_COIN_BUTTON按钮: {find_portfolio_coin_button}")
+                    find_portfolio_coin_button.click()
+                    
+                except Exception as e: 
+                    # 尝试使用_find_element_with_retry方法
+                    try:
+                        find_portfolio_coin_button = self._find_element_with_retry(
+                            XPathConfig.FIND_PORTFOLIO_COIN_BUTTON,
+                            timeout=3,
+                            silent=True
+                        )
+                        if find_portfolio_coin_button:
+                            find_portfolio_coin_button.click()
+                            
+                        else:
+                            self.logger.error("无法找到FIND_PORTFOLIO_COIN_BUTTON按钮")
+                            return False
+                    except Exception as retry_e:
+                        self.logger.error(f"使用retry方法点击FIND_PORTFOLIO_COIN_BUTTON按钮失败: {str(retry_e)}")
                         return False
-                except Exception as retry_e:
-                    self.logger.error(f"使用retry方法点击FIND_PORTFOLIO_COIN_BUTTON按钮失败: {str(retry_e)}")
-                    return False
 
-            time.sleep(3)
-            
-            # 保存当前 URL 到 config
-            base_url = self.driver.current_url
-            current_url = self.extract_base_url(base_url)
-            self.config['website']['url'] = current_url
-            self.save_config()
-            self.logger.info(f"已保存当前 URL 到 config: {current_url}")
+                time.sleep(3)
+                
+                # 保存当前 URL 到 config
+                base_url = self.driver.current_url
+                current_url = self.extract_base_url(base_url)
+                self.config['website']['url'] = current_url
+                self.save_config()
+                self.logger.info(f"已保存当前 URL 到 config: {current_url}")
 
-            # 把保存到config的url放到self.url_entry中
-            # 保存前,先清楚现有的url
-            self.url_entry.delete(0, tk.END)
-            self.url_entry.insert(0, current_url)
-            self.target_url = self.url_entry.get()
-            time.sleep(2)
-            self.start_url_monitoring()
-            self.refresh_page()
-            self.stop_auto_find_coin()
-            
-            return True
-
+                # 把保存到config的url放到self.url_entry中
+                # 保存前,先清楚现有的url
+                self.url_entry.delete(0, tk.END)
+                self.url_entry.insert(0, current_url)
+                self.target_url = self.url_entry.get()
+                time.sleep(2)
+                self.start_url_monitoring()
+                self.refresh_page()
+                self.stop_auto_find_coin()
+                
+                return True
         # 没有持仓就判断是否到了找币时间
         else:
             if self.is_auto_find_54_coin_time():
