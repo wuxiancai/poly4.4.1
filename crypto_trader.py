@@ -748,7 +748,7 @@ class CryptoTrader:
 
         # 第一行按钮
         self.position_sell_yes_button = ttk.Button(button_frame, text="Positions-Sell-Yes", width=13,
-                                                 command=self.click_position_sell)
+                                                 command=self.click_position_sell_yes)
         self.position_sell_yes_button.grid(row=0, column=0, padx=2, pady=5)
 
         self.position_sell_no_button = ttk.Button(button_frame, text="Positions-Sell-No", width=13,
@@ -2166,20 +2166,7 @@ class CryptoTrader:
                 lambda driver: driver.execute_script('return document.readyState') == 'complete'
             )
             position_value = None
-            try:
-                # 尝试获取YES的标签值，如果不存在会直接进入except块
-                try:
-                    position_label_yes = self.driver.find_element(By.XPATH, XPathConfig.POSITION_YES_LABEL)
-                except NoSuchElementException: 
-                    position_label_yes = self._find_element_with_retry(
-                            XPathConfig.POSITION_YES_LABEL,
-                            timeout=3,
-                            silent=True
-                    )
-                position_value = position_label_yes.text
-            except:
-                # 如果获取第一行失败，不报错，继续执行
-                pass   
+            position_value = self.find_position_label_yes()
             # 根据position_value的值决定点击哪个按钮
             if position_value == "Yes":
                 # 如果第一行是Yes，点击第二的按钮
@@ -2209,8 +2196,8 @@ class CryptoTrader:
             self.logger.error(error_msg)
             self.update_status(error_msg)
 
-    def click_position_sell(self):
-        """点击 Positions-Sell-Yes 按钮，函数名漏写了一个 YES"""
+    def click_position_sell_yes(self):
+        """点击 Positions-Sell-Yes 按钮"""
         try:
             if not self.driver:
                 self.update_status("请先连接浏览器")
@@ -2220,21 +2207,7 @@ class CryptoTrader:
                 lambda driver: driver.execute_script('return document.readyState') == 'complete'
             )
             position_value = None
-            try:
-                # 尝试获取第二行NO的标签值，如果不存在会直接进入except块
-                try:
-                    position_label_no = self.driver.find_element(By.XPATH, XPathConfig.POSITION_NO_LABEL)
-                except NoSuchElementException: 
-                    position_label_no = self._find_element_with_retry(
-                            XPathConfig.POSITION_NO_LABEL,
-                            timeout=3,
-                            silent=True
-                    )
-                position_value = position_label_no.text
-            except:
-                # 如果获取第二行失败，不报错，继续执行
-                pass
-                
+            position_value = self.find_position_label_no()
             # 根据position_value的值决定点击哪个按钮
             if position_value == "No":
                 # 如果第二行是No，点击第一行YES 的 SELL的按钮
@@ -2971,12 +2944,17 @@ class CryptoTrader:
                     
                 except Exception:
                     position_label_yes = self._find_element_with_retry(XPathConfig.POSITION_YES_LABEL, timeout=3, silent=True)
-                    self.logger.info(f"找到了Yes持仓标签: {position_label_yes.text}")
+
+                    if position_label_yes:
+                        self.logger.info(f"找到了Yes持仓标签: {position_label_yes.text}")
+                    else:
+                        self.logger.debug("未找到Yes持仓标签")
+                        return None
                 # 如果找到了标签，返回标签文本
                 if position_label_yes:
                     return position_label_yes.text
                 else:
-                    self.logger.info("未找到Yes持仓")
+                    self.logger.debug("未找到Yes持仓")
                     return None
                          
             except TimeoutException:
@@ -3013,12 +2991,17 @@ class CryptoTrader:
                     
                 except Exception:
                     position_label_no = self._find_element_with_retry(XPathConfig.POSITION_NO_LABEL, timeout=3, silent=True)
-                    self.logger.info(f"找到了No持仓标签: {position_label_no.text}")
+
+                    if position_label_no:
+                        self.logger.info(f"找到了No持仓标签: {position_label_no.text}")
+                    else:
+                        self.logger.debug("未找到No持仓标签")
+                        return None
                 # 如果找到了标签，返回标签文本
                 if position_label_no:
                     return position_label_no.text
                 else:
-                    self.logger.info("未找到No持仓")
+                    self.logger.debug("未找到No持仓")
                     return None
                                
             except TimeoutException:
