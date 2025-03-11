@@ -1268,7 +1268,7 @@ class CryptoTrader:
                 try:
                     self.root.after_cancel(self.url_check_timer)
                     self.url_check_timer = None
-                    self.logger.info("❌ 已取消URL监控定时器")
+                    
                 except Exception as e:
                     self.logger.error(f"取消URL监控定时器时出错: {str(e)}")
             
@@ -1463,7 +1463,7 @@ class CryptoTrader:
                 try:
                     self.root.after_cancel(self.refresh_page_timer)
                     self.refresh_page_timer = None
-                    self.logger.info("❌ 已经停止刷新定时器")
+                    
                 except Exception as e:
                     self.logger.error(f"取消页面刷新定时器时出错: {str(e)}")
 
@@ -3396,6 +3396,7 @@ class CryptoTrader:
             self.root.after(5000, self.start_url_monitoring)
             # 增加 10 分钟后再次找币
             self.root.after(600000, self.find_54_coin)
+            self.logger.info("10分钟后再次找币")
 
         except Exception as e:
             self.logger.error(f"自动找币异常: {str(e)}")
