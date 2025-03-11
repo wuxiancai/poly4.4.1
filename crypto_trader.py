@@ -1430,6 +1430,8 @@ class CryptoTrader:
     # 添加刷新方法
     def refresh_page(self):
         """定时刷新页面"""
+        if self.trading:
+            return
         with self.refresh_page_lock:
             self.refresh_page_running = True
             try:
@@ -3114,7 +3116,10 @@ class CryptoTrader:
 
     def start_auto_find_coin(self):
         """启动自动找币"""
-        # 先判断是否持仓
+       
+        if self.trading:
+            return
+
         if self.contrast_portfolio_cash():
             if self.is_position_yes_or_no():
                 self.logger.info(f"✅ 当前有持仓{self.yes_element}或{self.no_element},不进行自动找币")
@@ -3205,6 +3210,9 @@ class CryptoTrader:
         """自动找币"""
         self.logger.info("✅ 当前没有持仓,开始自动找币")
         try:
+            if self.trading:
+                return
+            
             self.auto_find_coin = True
             self.stop_url_monitoring()
             self.stop_refresh_page()
@@ -3279,7 +3287,8 @@ class CryptoTrader:
                             self.logger.error(f"等待页面加载失败: {str(e)}")
 
                         if self.trading == True:
-                            
+                            # 正在交易,等待交易结束
+                            time.sleep(50)
                             # 保存当前 URL 到 config
                             self.config['website']['url'] = coin_new_weekly_url
                             self.save_config()
@@ -3409,6 +3418,8 @@ class CryptoTrader:
     def find_new_weekly_url(self, coin):
         """在Polymarket市场搜索指定币种的周合约地址,只返回周合约地址"""
         try:
+            if self.trading:
+                return
             # 保存原始窗口句柄 - 使用实例变量而不是局部变量
             if not hasattr(self, 'original_window') or not self.original_window:
                 self.original_window = self.driver.current_window_handle
@@ -3533,7 +3544,7 @@ class CryptoTrader:
                     time.sleep(5)
                     # 这里如果价格时 54,那么会触发自动交易
                     if self.trading == True:
-
+                        time.sleep(50)
                         # 保存当前 URL 到 config
                         self.config['website']['url'] = new_weekly_url
                         self.save_config()
