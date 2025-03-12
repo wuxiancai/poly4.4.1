@@ -1321,7 +1321,6 @@ class CryptoTrader:
     def _check_login_status_thread(self):
         """在单独线程中执行登录检查"""
         try:
-            # 检查登录按钮
             try:
                 if self.find_login_button():
                     self.logger.warning("检测到❌未登录状态，执行登录")
@@ -1394,6 +1393,9 @@ class CryptoTrader:
         """重新登录后,需要在amount输入框输入1并确认"""
         self.logger.info("开始执行click_accept_button")
         try:
+            # 未登录,不执行click_accept_button
+            if self.find_login_button():
+                self.check_and_handle_login()
             # 等待输入框可交互
             try:
                 amount_input = self.driver.find_element(By.XPATH, XPathConfig.AMOUNT_INPUT)
