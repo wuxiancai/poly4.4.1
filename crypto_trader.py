@@ -3123,7 +3123,7 @@ class CryptoTrader:
         if self.trading:
             return
         # 未登录,不执行自动找币
-        if self.find_login_status():
+        if self.find_login_button():
             return
         
         if self.contrast_portfolio_cash():
