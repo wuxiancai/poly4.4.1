@@ -3117,10 +3117,13 @@ class CryptoTrader:
 
     def start_auto_find_coin(self):
         """启动自动找币"""
-       
+        # 正在交易,不执行自动找币
         if self.trading:
             return
-
+        # 未登录,不执行自动找币
+        if self.find_login_status():
+            return
+        
         if self.contrast_portfolio_cash():
             self.stop_url_monitoring()
             self.stop_refresh_page()
